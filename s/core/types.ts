@@ -8,5 +8,6 @@ export type Glacier = {
 	read(hash: Hash): Promise<Blob>
 	delete(hash: Hash): Promise<void>
 	write(readable: ReadableStream<Uint8Array>): Promise<Hash>
+	keys(): AsyncIterable<Hash>
 }
 

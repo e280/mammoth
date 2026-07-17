@@ -22,8 +22,8 @@
 		"count": "find s -path '*/_archive' -prune -o -name '*.ts' -exec wc -l {} +"
 	},
 	"dependencies": {
-		"@e280/kv": "^0.1.4",
-		"@e280/stz": "^0.3.3",
+		"@e280/kv": "^0.1.5",
+		"@e280/stz": "^0.3.4",
 		"@noble/hashes": "^2.2.0"
 	},
 	"devDependencies": {

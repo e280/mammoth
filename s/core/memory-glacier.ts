@@ -1,10 +1,9 @@
 
-import {got, hex} from "@e280/stz"
+import {bytes, got, hex} from "@e280/stz"
 import {blake3} from "@noble/hashes/blake3.js"
 
 import {randomId} from "./utils/random-id.js"
 import {Glacier, Hash, RandomId} from "./types.js"
-import {concatBytes} from "./utils/concat-bytes.js"
 
 export class MemoryGlacier implements Glacier {
 	#hot = new Map<RandomId, Uint8Array[]>()
@@ -42,12 +41,16 @@ export class MemoryGlacier implements Glacier {
 				hasher.update(chunk)
 			}
 			const hash = hex.fromBytes(hasher.digest())
-			this.#cold.set(hash, concatBytes(parts))
+			this.#cold.set(hash, bytes.concat(parts))
 			return hash
 		}
 		finally {
 			this.#hot.delete(id)
 		}
+	}
+
+	async* keys() {
+		yield* this.#cold.keys()
 	}
 }
 

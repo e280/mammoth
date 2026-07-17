@@ -7,11 +7,11 @@ import {Glacier, Hash, RandomId} from "../core/types.js"
 
 export class BrowserGlacier implements Glacier {
 	#index
-	#files
+	#directory
 
-	constructor(index: Kv<string>, files: FileSystemDirectoryHandle) {
+	constructor(index: Kv<string>, directory: FileSystemDirectoryHandle) {
 		this.#index = index
-		this.#files = files
+		this.#directory = directory
 	}
 
 	async has(hash: Hash) {
@@ -20,14 +20,14 @@ export class BrowserGlacier implements Glacier {
 
 	async size(hash: Hash) {
 		const id = await this.#needFileId(hash)
-		const handle = await this.#files.getFileHandle(id)
+		const handle = await this.#directory.getFileHandle(id)
 		const file = await handle.getFile()
 		return file.size
 	}
 
 	async read(hash: Hash) {
 		const id = await this.#needFileId(hash)
-		const handle = await this.#files.getFileHandle(id)
+		const handle = await this.#directory.getFileHandle(id)
 		return handle.getFile()
 	}
 
@@ -35,13 +35,13 @@ export class BrowserGlacier implements Glacier {
 		const id = await this.#getFileId(hash)
 		if (id) {
 			await this.#index.del(hash)
-			await this.#files.removeEntry(id)
+			await this.#directory.removeEntry(id)
 		}
 	}
 
 	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
 		const id = randomId()
-		const handle = await this.#files.getFileHandle(id, {create: true})
+		const handle = await this.#directory.getFileHandle(id, {create: true})
 		const writable = await handle.createWritable({keepExistingData: false})
 		const hasher = blake3.create()
 
@@ -52,10 +52,7 @@ export class BrowserGlacier implements Glacier {
 
 		await writable.close()
 		const hash = hex.fromBytes(hasher.digest())
-
-		// ensure no duplicates by deleting previous entries
 		await this.delete(hash)
-
 		await this.#index.set(hash, id)
 		return hash
 	}
@@ -66,6 +63,10 @@ export class BrowserGlacier implements Glacier {
 
 	async #needFileId(hash: Hash): Promise<RandomId> {
 		return got(await this.#getFileId(hash), `file not found by hash "${hash}"`)
+	}
+
+	async* keys() {
+		yield* this.#index.keys()
 	}
 }
 
