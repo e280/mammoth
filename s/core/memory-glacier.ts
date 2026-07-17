@@ -1,9 +1,10 @@
 
 import {got, hex} from "@e280/stz"
 import {blake3} from "@noble/hashes/blake3.js"
-import {randomId} from "../utils/random-id.js"
-import {Glacier, Hash, RandomId} from "../types.js"
-import {concatBytes} from "../utils/concat-bytes.js"
+
+import {randomId} from "./utils/random-id.js"
+import {Glacier, Hash, RandomId} from "./types.js"
+import {concatBytes} from "./utils/concat-bytes.js"
 
 export class MemoryGlacier implements Glacier {
 	#hot = new Map<RandomId, {time: number, parts: Uint8Array[]}>()

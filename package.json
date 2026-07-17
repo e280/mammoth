@@ -8,7 +8,7 @@
 	"main": "./x/index.js",
 	"sideEffects": false,
 	"exports": {
-		".": "./x/index.js"
+		".": "./x/core/index.js"
 	},
 	"files": [
 		"x",
