@@ -7,38 +7,42 @@ import {Glacier, Hash, RandomId} from "./types.js"
 import {concatBytes} from "./utils/concat-bytes.js"
 
 export class MemoryGlacier implements Glacier {
-	#hot = new Map<RandomId, {time: number, parts: Uint8Array[]}>()
+	#hot = new Map<RandomId, Uint8Array[]>()
 	#cold = new Map<Hash, Uint8Array>()
 
-	async read(hash: Hash): Promise<Blob> {
+	async read(hash: Hash) {
 		return new Blob(
 			[got(this.#cold.get(hash)) as Uint8Array<ArrayBuffer>],
 			{type: "application/octet-stream"},
 		)
 	}
 
-	async has(hash: Hash): Promise<boolean> {
+	async has(hash: Hash) {
 		return this.#cold.has(hash)
 	}
 
-	async size(hash: Hash): Promise<number> {
+	async size(hash: Hash) {
 		return got(this.#cold.get(hash)).byteLength
 	}
 
+	async delete(hash: Hash) {
+		this.#cold.delete(hash)
+	}
+
 	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
-		const record = {time: Date.now(), parts: [] as Uint8Array[]}
+		const parts: Uint8Array[] = []
 		const id = randomId()
-		this.#hot.set(id, record)
+		this.#hot.set(id, parts)
 
 		const hasher = blake3.create()
 
 		try {
 			for await (const chunk of readable) {
-				record.parts.push(chunk)
+				parts.push(chunk)
 				hasher.update(chunk)
 			}
 			const hash = hex.fromBytes(hasher.digest())
-			this.#cold.set(hash, concatBytes(record.parts))
+			this.#cold.set(hash, concatBytes(parts))
 			return hash
 		}
 		finally {
