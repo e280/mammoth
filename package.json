@@ -1,0 +1,38 @@
+{
+	"name": "@e280/mammoth",
+	"version": "0.1.0-0",
+	"description": "big file storage",
+	"license": "MIT",
+	"author": "Chase Moskal <chasemoskal@gmail.com>",
+	"type": "module",
+	"main": "./x/index.js",
+	"sideEffects": false,
+	"exports": {
+		".": "./x/index.js"
+	},
+	"files": [
+		"x",
+		"s"
+	],
+	"scripts": {
+		"build": "rm -rf x && mkdir x && tsc",
+		"dev": "octo 'tsc -w' 'node --watch x/test.js'",
+		"test": "node x/test.js",
+		"count": "find s -path '*/_archive' -prune -o -name '*.ts' -exec wc -l {} +"
+	},
+	"devDependencies": {
+		"@e280/octo": "^0.1.2",
+		"@e280/science": "^0.1.11",
+		"@types/node": "^26.1.1",
+		"typescript": "^7.0.2"
+	},
+	"keywords": [],
+	"homepage": "https://github.com/e280/mammoth#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/e280/mammoth.git"
+	},
+	"bugs": {
+		"url": "https://github.com/e280/mammoth/issues"
+	}
+}
