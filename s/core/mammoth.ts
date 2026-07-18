@@ -57,23 +57,8 @@ export class Mammoth {
 		const id = randomId()
 		await this.#wip.set(id, {created: Date.now()})
 
-		const pipe = new TransformStream()
-		const done = this.#bucket.write(id, pipe.readable)
-		const writer = pipe.writable.getWriter()
-		const hasher = blake3.create()
+		const {hash, size} = await this.#hashAndSave(id, readable)
 
-		let size = 0
-
-		for await (const chunk of readable) {
-			await writer.write(chunk as Uint8Array<ArrayBuffer>)
-			hasher.update(chunk)
-			size += chunk.byteLength
-		}
-
-		await writer.close()
-		await done
-
-		const hash = hex.fromBytes(hasher.digest())
 		await this.#wip.del(id)
 		await this.#finalizeWrite(hash, id, size)
 
@@ -96,6 +81,26 @@ export class Mammoth {
 
 	async #needId(hash: Hash): Promise<Id> {
 		return got(await this.#getId(hash), `file not found by hash "${hash}"`)
+	}
+
+	async #hashAndSave(id: Id, readable: ReadableStream<Uint8Array>) {
+		let size = 0
+		const pipe = new TransformStream()
+		const done = this.#bucket.write(id, pipe.readable)
+		const writer = pipe.writable.getWriter()
+		const hasher = blake3.create()
+
+		for await (const chunk of readable) {
+			await writer.write(chunk as Uint8Array<ArrayBuffer>)
+			hasher.update(chunk)
+			size += chunk.byteLength
+		}
+
+		await writer.close()
+		await done
+
+		const hash = hex.fromBytes(hasher.digest())
+		return {hash, size}
 	}
 
 	#finalizeWrite = queue(async(hash: Hash, id: Id, size: number) => {
