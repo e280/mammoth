@@ -77,6 +77,6 @@ export class Mammoth {
 		const expiredIds = await this.#manifest.getExpiredIds()
 		await Promise.all(expiredIds.map(id => this.#bucket.delete(id)))
 		await this.#manifest.deleteWip(...expiredIds)
-	})
+	}, consts.max_jobs)
 }
 
