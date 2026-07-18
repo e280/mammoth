@@ -1,8 +1,8 @@
 
-import {Iceberg, Id} from "../core/types.js"
+import {Bucket, Id} from "../core/types.js"
 import {isNotFound} from "./utils/is-not-found.js"
 
-export class IcebergOpfs implements Iceberg {
+export class OpfsBucket implements Bucket {
 	#directory
 
 	constructor(directory: FileSystemDirectoryHandle) {

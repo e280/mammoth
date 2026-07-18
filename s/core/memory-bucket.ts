@@ -1,9 +1,9 @@
 
 import {bytes, got, nap} from "@e280/stz"
-import {Iceberg, Id} from "./types.js"
+import {Bucket, Id} from "./types.js"
 import {relaxer} from "./utils/relaxer.js"
 
-export class IcebergMemory implements Iceberg {
+export class MemoryBucket implements Bucket {
 	#map = new Map<string, Uint8Array>()
 
 	async has(id: Id) {
