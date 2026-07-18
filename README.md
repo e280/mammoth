@@ -81,7 +81,7 @@ const mammoth = new Mammoth()
 - **get stats,** for the whole datalake.
     ```ts
     await mammoth.stats()
-      // {size: 1234567}
+      // {count: 123, size: 123456789}
     ```
 - **loop over all hashes,** for all stored files.
     ```ts

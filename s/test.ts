@@ -64,15 +64,15 @@ await science.run({
 
 		".stats": test(async() => {
 			const {mammoth} = setup()
-			expect(await mammoth.stats()).deep({size: 0})
+			expect(await mammoth.stats()).deep({count: 0, size: 0})
 			const hashA = await mammoth.write(quickstream([0xC0, 0xFF, 0xEE]))
-			expect(await mammoth.stats()).deep({size: 3})
+			expect(await mammoth.stats()).deep({count: 1, size: 3})
 			const hashB = await mammoth.write(quickstream([0xB0, 0x0B, 0x1E, 0x5]))
-			expect(await mammoth.stats()).deep({size: 7})
+			expect(await mammoth.stats()).deep({count: 2, size: 7})
 			await mammoth.delete(hashA)
-			expect(await mammoth.stats()).deep({size: 4})
+			expect(await mammoth.stats()).deep({count: 1, size: 4})
 			await mammoth.delete(hashB)
-			expect(await mammoth.stats()).deep({size: 0})
+			expect(await mammoth.stats()).deep({count: 0, size: 0})
 		}),
 
 		".has": test(async() => {

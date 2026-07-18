@@ -2,6 +2,7 @@
 export type Hash = string
 export type Id = string
 
+/** file blob store. */
 export type Bucket = {
 	has(id: Id): Promise<boolean>
 	size(id: Id): Promise<number>
@@ -11,7 +12,12 @@ export type Bucket = {
 }
 
 export type Stats = {
+
+	/** total number of bytes in the whole datalake. */
 	size: number
+
+	/** total number of known files in the datalake. */
+	count: number
 }
 
 export type Wip = {

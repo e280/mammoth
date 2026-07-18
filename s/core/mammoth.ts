@@ -43,18 +43,21 @@ export class Mammoth {
 			const size = await this.#bucket.size(id)
 			await this.#ids.del(hash)
 			await this.#bucket.delete(id)
-			await this.#addSize(-size)
+			await this.#updateStats(stats => {
+				stats.count--
+				stats.size -= size
+			})
 		}
 	}
 
 	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
 		const id = randomId()
-		await this.#wip.set(id, {created: Date.now()})
 
+		await this.#wip.set(id, {created: Date.now()})
 		const {hash, size} = await saveAndHash(this.#bucket, id, readable)
 		await this.#wip.del(id)
-		await this.#finalizeWrite(hash, id, size)
 
+		await this.#finalizeWrite(hash, id, size)
 		void this.#selfClean().catch(() => {})
 		return hash
 	}
@@ -64,22 +67,25 @@ export class Mammoth {
 	}
 
 	async stats() {
-		return (await this.#stats.get()) ?? {size: 0}
+		return structuredClone((await this.#stats.get()) ?? {count: 0, size: 0})
 	}
 
-	#addSize = queue(async(sizeChange: number) => {
+	#updateStats = queue(async(fn: (stats: Stats) => void) => {
 		const stats = await this.stats()
-		const size = stats.size + sizeChange
-		await this.#stats.set({...stats, size})
+		fn(stats)
+		await this.#stats.set(stats)
 	})
 
 	#finalizeWrite = queue(async(hash: Hash, id: Id, size: number) => {
 		if (await this.#ids.has(hash)) {
-			await this.#bucket.delete(id)
+			await this.#bucket.delete(id) // forget this new file (we already have it)
 		}
 		else {
 			await this.#ids.set(hash, id)
-			await this.#addSize(size)
+			await this.#updateStats(stats => {
+				stats.count++
+				stats.size += size
+			})
 		}
 	})
 
