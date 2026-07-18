@@ -50,7 +50,7 @@ export class Mammoth {
 		await this.#cleanup()
 	}
 
-	async write(readable: ReadableStream<Uint8Array>): Promise<Analysis> {
+	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
 		const id = randomId()
 		await this.#manifest.addWip(id)
 		try {
@@ -58,7 +58,7 @@ export class Mammoth {
 			const {hash, size} = analysis
 			const info = {id, size, added: Date.now()}
 			await this.#wholesome(() => this.#manifest.commit(hash, info))
-			return analysis
+			return analysis.hash
 		}
 		catch (error) {
 			await this.#manifest.moveWipToTrash(id)

@@ -19,7 +19,7 @@ const mammoth = new Mammoth()
 ### 🦣 mammoth stores files.
 - **write a file,** and you get back its blake3 `hash` and `size` in bytes.
     ```ts
-    const {hash, size} = await mammoth.write(blob.stream())
+    const hash = await mammoth.write(blob.stream())
     ```
 - **read a file,** identified by its hash.
     ```ts
