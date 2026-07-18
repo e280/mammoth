@@ -19,7 +19,7 @@ export async function example() {
 	const myFile = new Blob([new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF])])
 
 	// write a file as an example
-	const hash = await mammoth.write(myFile.stream())
-	console.log(`mammoth stored file by hash "${hash}"`)
+	const {hash} = await mammoth.write(myFile.stream())
+	console.log(`mammoth stored file "${hash}"`)
 }
 

@@ -24,7 +24,7 @@ await science.run({
 		const dataDir = "data"
 		await rm(dataDir, {recursive: true, force: true})
 		const mammoth = new Mammoth(new DiskBucket(dataDir), new Kv())
-		const hash = await mammoth.write(blob().stream())
+		const {hash} = await mammoth.write(blob().stream())
 		const second = await mammoth.read(hash)
 		expect(bytes.eq(await second.bytes(), await blob().bytes()))
 	}),
@@ -32,15 +32,15 @@ await science.run({
 	"mammoth memory": {
 		".write and .read": test(async() => {
 			const {mammoth} = setup()
-			const hash = await mammoth.write(blob().stream())
+			const {hash} = await mammoth.write(blob().stream())
 			const second = await mammoth.read(hash)
 			expect(bytes.eq(await second.bytes(), await blob().bytes()))
 		}),
 
 		".write deduplication": test(async() => {
 			const {mammoth} = setup()
-			const hashA = await mammoth.write(blob().stream())
-			const hashB = await mammoth.write(blob().stream())
+			const {hash: hashA} = await mammoth.write(blob().stream())
+			const {hash: hashB} = await mammoth.write(blob().stream())
 			const keys = await collect(mammoth.hashes())
 			expect(hashA).is(hashB)
 			expect(keys.length).is(1)
@@ -49,7 +49,7 @@ await science.run({
 
 		".write empty file": test(async() => {
 			const {mammoth} = setup()
-			const hash = await mammoth.write(new Blob().stream())
+			const {hash} = await mammoth.write(new Blob().stream())
 			expect((await mammoth.info(hash)).size).is(0)
 			expect((await mammoth.read(hash)).size).is(0)
 		}),
@@ -65,9 +65,9 @@ await science.run({
 		".stats": test(async() => {
 			const {mammoth} = setup()
 			expect(await mammoth.stats()).deep({count: 0, size: 0})
-			const hashA = await mammoth.write(quickstream([0xC0, 0xFF, 0xEE]))
+			const {hash: hashA} = await mammoth.write(quickstream([0xC0, 0xFF, 0xEE]))
 			expect(await mammoth.stats()).deep({count: 1, size: 3})
-			const hashB = await mammoth.write(quickstream([0xB0, 0x0B, 0x1E, 0x5]))
+			const {hash: hashB} = await mammoth.write(quickstream([0xB0, 0x0B, 0x1E, 0x5]))
 			expect(await mammoth.stats()).deep({count: 2, size: 7})
 			await mammoth.delete(hashA)
 			expect(await mammoth.stats()).deep({count: 1, size: 4})
@@ -77,7 +77,7 @@ await science.run({
 
 		".has": test(async() => {
 			const {mammoth} = setup()
-			const hash = await mammoth.write(blob().stream())
+			const {hash} = await mammoth.write(blob().stream())
 			expect(await mammoth.has(hash)).is(true)
 			expect(await mammoth.has(randomId())).is(false)
 		}),
@@ -85,13 +85,13 @@ await science.run({
 		".size": test(async() => {
 			const {mammoth} = setup()
 			const b = blob()
-			const hash = await mammoth.write(b.stream())
+			const {hash} = await mammoth.write(b.stream())
 			expect((await mammoth.info(hash)).size).is(b.size)
 		}),
 
 		".delete": test(async() => {
 			const {mammoth} = setup()
-			const hash = await mammoth.write(blob().stream())
+			const {hash} = await mammoth.write(blob().stream())
 			await mammoth.delete(hash)
 			expect(await mammoth.has(hash)).is(false)
 			expect(await collect(mammoth.hashes())).deep([])
@@ -104,7 +104,7 @@ await science.run({
 
 		".keys": test(async() => {
 			const {mammoth} = setup()
-			const hash = await mammoth.write(blob().stream())
+			const {hash} = await mammoth.write(blob().stream())
 			const keys = await collect(mammoth.hashes())
 			expect(keys.length).is(1)
 			expect(keys[0]).is(hash)

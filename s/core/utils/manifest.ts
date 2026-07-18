@@ -1,12 +1,15 @@
 
 import {Kv} from "@e280/kv"
-import {collect, got} from "@e280/stz"
-import {consts} from "../consts.js"
+import {got} from "@e280/stz"
 import {notFound} from "./not-found.js"
 import {isExpired} from "./is-expired.js"
 import {Hash, Id, Info, Stats, Wip} from "../types.js"
 
 export class Manifest {
+	#kv
+
+	/** statistics about the whole datalake */
+	#stats
 
 	/** associates file hashes with bucket ids */
 	#info
@@ -15,12 +18,18 @@ export class Manifest {
 	#wip
 
 	/** statistics about the whole datalake */
-	#stats
+	#trash
 
 	constructor(kv = new Kv()) {
+		this.#kv = kv
+		this.#stats = kv.store<Stats>("stats")
 		this.#info = kv.scope<Info>("info")
 		this.#wip = kv.scope<Wip>("wip")
-		this.#stats = kv.store<Stats>("stats")
+		this.#trash = kv.scope<true>("trash")
+	}
+
+	async getStats() {
+		return structuredClone((await this.#stats.get()) ?? {count: 0, size: 0})
 	}
 
 	async* hashes() {
@@ -31,20 +40,12 @@ export class Manifest {
 		return this.#info.has(hash)
 	}
 
-	async saveInfo(hash: Hash, info: Info) {
-		await this.#info.set(hash, info)
-	}
-
 	async getInfo(hash: Hash) {
 		return await this.#info.get(hash)
 	}
 
 	async needInfo(hash: Hash) {
 		return got(await this.getInfo(hash), notFound(hash))
-	}
-
-	async deleteInfo(hash: Hash) {
-		await this.#info.del(hash)
 	}
 
 	async addWip(id: Id) {
@@ -55,35 +56,58 @@ export class Manifest {
 		await this.#wip.del(...ids)
 	}
 
-	async statsAddFile(size: number) {
-		await this.#updateStats(stats => {
-			stats.count += 1
-			stats.size += size
-		})
+	async* getExpiredWipIds() {
+		for await (const [id, wip] of this.#wip.entries()) {
+			if (isExpired(wip))
+				yield id
+		}
 	}
 
-	async statsRemoveFile(size: number) {
-		await this.#updateStats(stats => {
-			stats.count -= 1
-			stats.size -= size
-		})
+	async moveWipToTrash(id: Id) {
+		await this.#kv.transaction(() => [
+			this.#wip.write.del(id),
+			this.#trash.write.set(id, true),
+		])
 	}
 
-	async getExpiredIds() {
-		const limit = consts.self_clean_limit
-		return (await collect(this.#wip.entries({limit})))
-			.filter(([,wip]) => isExpired(wip))
-			.map(([id]) => id)
+	async dropTrashRecord(id: Id) {
+		await this.#trash.del(id)
 	}
 
-	async getStats() {
-		return structuredClone((await this.#stats.get()) ?? {count: 0, size: 0})
+	async* listTrashIds() {
+		yield* this.#trash.keys()
 	}
 
-	async #updateStats(fn: (stats: Stats) => void) {
+	async scheduleDeletion(hash: Hash, info: Info) {
 		const stats = await this.getStats()
-		fn(stats)
-		await this.#stats.set(stats)
+		stats.count -= 1
+		stats.size -= info.size
+		await this.#kv.transaction(() => [
+			this.#info.write.del(hash),
+			this.#trash.write.set(info.id, true),
+			this.#stats.write.set(stats),
+		])
+	}
+
+	async commit(hash: Hash, info: Info) {
+		const isNewFile = !await this.hasHash(hash)
+
+		if (isNewFile) {
+			const stats = await this.getStats()
+			stats.count += 1
+			stats.size += info.size
+			await this.#kv.transaction(() => [
+				this.#wip.write.del(info.id),
+				this.#info.write.set(hash, info),
+				this.#stats.write.set(stats)
+			])
+		}
+		else {
+			await this.#kv.transaction(() => [
+				this.#wip.write.del(info.id),
+				this.#trash.write.set(info.id, true),
+			])
+		}
 	}
 }
 
