@@ -26,11 +26,6 @@ export class DiskBucket implements Bucket {
 		}
 	}
 
-	async size(id: Id) {
-		const stats = await stat(this.#path(id))
-		return stats.size
-	}
-
 	async delete(id: Id) {
 		try {
 			await unlink(this.#path(id))

@@ -10,10 +10,6 @@ export class MemoryBucket implements Bucket {
 		return this.#map.has(id)
 	}
 
-	async size(id: Id) {
-		return got(this.#map.get(id)).byteLength
-	}
-
 	async delete(id: Id) {
 		this.#map.delete(id)
 	}

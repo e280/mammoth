@@ -5,18 +5,31 @@ export type Id = string
 /** file blob store. */
 export type Bucket = {
 	has(id: Id): Promise<boolean>
-	size(id: Id): Promise<number>
 	delete(id: Id): Promise<void>
 	read(id: Id): Promise<Blob>
 	write(id: Id, readable: ReadableStream<Uint8Array>): Promise<void>
 }
 
+/** metadata for a single file. */
+export type Info = {
+
+	/** bucket id for this file's data. */
+	id: Id
+
+	/** file size in bytes. */
+	size: number
+
+	/** when this file was added to the datalake. */
+	added: number
+}
+
+/** statistics for the whole datalake. */
 export type Stats = {
 
 	/** total number of bytes in the whole datalake. */
 	size: number
 
-	/** total number of known files in the datalake. */
+	/** total number of files in the datalake. */
 	count: number
 }
 

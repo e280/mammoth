@@ -4,12 +4,12 @@ import {collect, got} from "@e280/stz"
 import {consts} from "../consts.js"
 import {notFound} from "./not-found.js"
 import {isExpired} from "./is-expired.js"
-import {Hash, Id, Stats, Wip} from "../types.js"
+import {Hash, Id, Info, Stats, Wip} from "../types.js"
 
 export class Manifest {
 
 	/** associates file hashes with bucket ids */
-	#ids
+	#info
 
 	/** temporary record of writes in-progress */
 	#wip
@@ -18,33 +18,33 @@ export class Manifest {
 	#stats
 
 	constructor(kv = new Kv()) {
-		this.#ids = kv.scope<string>("ids")
+		this.#info = kv.scope<Info>("info")
 		this.#wip = kv.scope<Wip>("wip")
 		this.#stats = kv.store<Stats>("stats")
 	}
 
 	async* hashes() {
-		yield* this.#ids.keys()
+		yield* this.#info.keys()
 	}
 
 	async hasHash(hash: Hash) {
-		return this.#ids.has(hash)
+		return this.#info.has(hash)
 	}
 
-	async associate(hash: Hash, id: Id) {
-		await this.#ids.set(hash, id)
+	async saveInfo(hash: Hash, info: Info) {
+		await this.#info.set(hash, info)
 	}
 
-	async getId(hash: Hash) {
-		return await this.#ids.get(hash)
+	async getInfo(hash: Hash) {
+		return await this.#info.get(hash)
 	}
 
-	async needId(hash: Hash) {
-		return got(await this.getId(hash), notFound(hash))
+	async needInfo(hash: Hash) {
+		return got(await this.getInfo(hash), notFound(hash))
 	}
 
-	async deleteId(hash: Hash) {
-		await this.#ids.del(hash)
+	async deleteInfo(hash: Hash) {
+		await this.#info.del(hash)
 	}
 
 	async addWip(id: Id) {
@@ -55,14 +55,14 @@ export class Manifest {
 		await this.#wip.del(...ids)
 	}
 
-	async addFileStats(size: number) {
+	async statsAddFile(size: number) {
 		await this.#updateStats(stats => {
 			stats.count += 1
 			stats.size += size
 		})
 	}
 
-	async removeFileStats(size: number) {
+	async statsRemoveFile(size: number) {
 		await this.#updateStats(stats => {
 			stats.count -= 1
 			stats.size -= size

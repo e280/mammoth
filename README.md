@@ -74,9 +74,9 @@ const mammoth = new Mammoth()
     ```ts
     const exists = await mammoth.has(hash)
     ```
-- **get file size,** in bytes.
+- **get file info,** including size in bytes, added timestamp, and bucket id.
     ```ts
-    const size = await mammoth.size(hash)
+    const {size, added, id} = await mammoth.info(hash)
     ```
 - **get stats,** for the whole datalake.
     ```ts

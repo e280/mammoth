@@ -24,24 +24,22 @@ export class Mammoth {
 		return this.#manifest.hasHash(hash)
 	}
 
-	async size(hash: Hash) {
-		const id = await this.#manifest.needId(hash)
-		return this.#bucket.size(id)
+	async info(hash: Hash) {
+		return this.#manifest.needInfo(hash)
 	}
 
 	async read(hash: Hash) {
-		const id = await this.#manifest.needId(hash)
+		const {id} = await this.#manifest.needInfo(hash)
 		return this.#bucket.read(id)
 	}
 
 	async delete(hash: Hash) {
 		await this.#wholesome(async() => {
-			const id = await this.#manifest.getId(hash)
-			if (id) {
-				const size = await this.#bucket.size(id)
-				await this.#manifest.deleteId(hash)
-				await this.#bucket.delete(id)
-				await this.#manifest.removeFileStats(size)
+			const info = await this.#manifest.getInfo(hash)
+			if (info) {
+				await this.#manifest.deleteInfo(hash)
+				await this.#bucket.delete(info.id)
+				await this.#manifest.statsRemoveFile(info.size)
 			}
 		})
 	}
@@ -57,8 +55,8 @@ export class Mammoth {
 				await this.#bucket.delete(id) // forget this new file (we already have it)
 			}
 			else {
-				await this.#manifest.associate(hash, id)
-				await this.#manifest.addFileStats(size)
+				await this.#manifest.saveInfo(hash, {id, size, added: Date.now()})
+				await this.#manifest.statsAddFile(size)
 			}
 		})
 

@@ -20,12 +20,6 @@ export class OpfsBucket implements Bucket {
 		}
 	}
 
-	async size(id: Id) {
-		const handle = await this.#directory.getFileHandle(id)
-		const file = await handle.getFile()
-		return file.size
-	}
-
 	async delete(id: Id) {
 		try {
 			await this.#directory.removeEntry(id)

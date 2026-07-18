@@ -50,7 +50,7 @@ await science.run({
 		".write empty file": test(async() => {
 			const {mammoth} = setup()
 			const hash = await mammoth.write(new Blob().stream())
-			expect(await mammoth.size(hash)).is(0)
+			expect((await mammoth.info(hash)).size).is(0)
 			expect((await mammoth.read(hash)).size).is(0)
 		}),
 
@@ -84,8 +84,9 @@ await science.run({
 
 		".size": test(async() => {
 			const {mammoth} = setup()
-			const hash = await mammoth.write(blob().stream())
-			expect(await mammoth.size(hash)).is(4)
+			const b = blob()
+			const hash = await mammoth.write(b.stream())
+			expect((await mammoth.info(hash)).size).is(b.size)
 		}),
 
 		".delete": test(async() => {
