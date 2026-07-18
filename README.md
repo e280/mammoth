@@ -1,8 +1,10 @@
 
-![](https://i.imgur.com/qqiMrZ5.png)
+![](https://i.imgur.com/1TQmFwW.png)
 
-# 🦣 @e280/mammoth
-## big files. small api.
+# 🦣 mammoth
+> *big files. small api.*
+
+**mammoth is a content-addressed file store.** files are streamed into a bucket, identified by their blake3 hash, and automatically deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs.
 
 ```bash
 npm install @e280/mammoth
@@ -67,7 +69,7 @@ const mammoth = new Mammoth()
   )
   ```
 
-### 🦣 mammoth has a few more methods for you.
+### 🦣 more mammoth methods.
 - **check if a file exists,** get back a boolean.
     ```ts
     const exists = await mammoth.has(hash)
@@ -91,5 +93,5 @@ const mammoth = new Mammoth()
 
 <br/><br/>
 
-> *by [e280](https://e280.org/)*
+*https://e280.org/*
 
