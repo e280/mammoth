@@ -1,13 +1,14 @@
 
 import {Kv} from "@e280/kv"
-import {collect, got, queue} from "@e280/stz"
+import {collect, got, lane, queue} from "@e280/stz"
 
+import {consts} from "./consts.js"
 import {randomId} from "./utils/random-id.js"
 import {notFound} from "./utils/not-found.js"
 import {MemoryBucket} from "./memory-bucket.js"
 import {isExpired} from "./utils/is-expired.js"
+import {Hash, Bucket, Stats, Wip} from "./types.js"
 import {saveAndHash} from "./utils/save-and-hash.js"
-import {Hash, Bucket, Id, Stats, Wip} from "./types.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
@@ -15,6 +16,9 @@ export class Mammoth {
 	#wip // temporary record of writes in-progress
 	#stats // statistics about the whole datalake
 	#bucket // file blobstore
+
+	// sensitive operations happen sequentially
+	#wholesome = lane(consts.max_jobs)
 
 	constructor(bucket: Bucket = new MemoryBucket(), kv = new Kv()) {
 		this.#ids = kv.scope<string>("ids")
@@ -38,16 +42,18 @@ export class Mammoth {
 	}
 
 	async delete(hash: Hash) {
-		const id = await this.#ids.get(hash)
-		if (id) {
-			const size = await this.#bucket.size(id)
-			await this.#ids.del(hash)
-			await this.#bucket.delete(id)
-			await this.#updateStats(stats => {
-				stats.count--
-				stats.size -= size
-			})
-		}
+		await this.#wholesome(async() => {
+			const id = await this.#ids.get(hash)
+			if (id) {
+				const size = await this.#bucket.size(id)
+				await this.#ids.del(hash)
+				await this.#bucket.delete(id)
+				await this.#updateStats(stats => {
+					stats.count -= 1
+					stats.size -= size
+				})
+			}
+		})
 	}
 
 	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
@@ -55,9 +61,21 @@ export class Mammoth {
 
 		await this.#wip.set(id, {created: Date.now()})
 		const {hash, size} = await saveAndHash(this.#bucket, id, readable)
-		await this.#wip.del(id)
 
-		await this.#finalizeWrite(hash, id, size)
+		await this.#wholesome(async() => {
+			if (await this.#ids.has(hash)) {
+				await this.#bucket.delete(id) // forget this new file (we already have it)
+			}
+			else {
+				await this.#ids.set(hash, id)
+				await this.#updateStats(stats => {
+					stats.count += 1
+					stats.size += size
+				})
+			}
+		})
+
+		await this.#wip.del(id)
 		void this.#selfClean().catch(() => {})
 		return hash
 	}
@@ -70,27 +88,15 @@ export class Mammoth {
 		return structuredClone((await this.#stats.get()) ?? {count: 0, size: 0})
 	}
 
-	#updateStats = queue(async(fn: (stats: Stats) => void) => {
+	async #updateStats(fn: (stats: Stats) => void) {
 		const stats = await this.stats()
 		fn(stats)
 		await this.#stats.set(stats)
-	})
-
-	#finalizeWrite = queue(async(hash: Hash, id: Id, size: number) => {
-		if (await this.#ids.has(hash)) {
-			await this.#bucket.delete(id) // forget this new file (we already have it)
-		}
-		else {
-			await this.#ids.set(hash, id)
-			await this.#updateStats(stats => {
-				stats.count++
-				stats.size += size
-			})
-		}
-	})
+	}
 
 	#selfClean = queue(async() => {
-		const expiredIds = (await collect(this.#wip.entries({limit: 64})))
+		const limit = consts.self_clean_limit
+		const expiredIds = (await collect(this.#wip.entries({limit})))
 			.filter(([,wip]) => isExpired(wip))
 			.map(([id]) => id)
 		await Promise.all(expiredIds.map(id => this.#bucket.delete(id)))
