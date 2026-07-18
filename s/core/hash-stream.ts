@@ -3,7 +3,7 @@ import {hex, nap} from "@e280/stz"
 import {blake3} from "@noble/hashes/blake3.js"
 import {relaxer} from "./utils/relaxer.js"
 
-export async function hash(readable: ReadableStream<Uint8Array>) {
+export async function hashStream(readable: ReadableStream<Uint8Array>) {
 	const hasher = blake3.create()
 	const relax = relaxer()
 
