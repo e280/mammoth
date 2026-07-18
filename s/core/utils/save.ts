@@ -1,9 +1,14 @@
 
 import {hex} from "@e280/stz"
 import {blake3} from "@noble/hashes/blake3.js"
-import {Bucket, Id} from "../types.js"
+import {Analysis, Bucket, Id} from "../types.js"
 
-export async function saveAndHash(bucket: Bucket, id: Id, readable: ReadableStream<Uint8Array>) {
+export async function save(
+		bucket: Bucket,
+		id: Id,
+		readable: ReadableStream<Uint8Array>,
+	): Promise<Analysis> {
+
 	let size = 0
 	const pipe = new TransformStream()
 	const done = bucket.write(id, pipe.readable)

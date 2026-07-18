@@ -3,11 +3,11 @@ import {Kv} from "@e280/kv"
 import {lane, queue} from "@e280/stz"
 
 import {consts} from "./consts.js"
+import {save} from "./utils/save.js"
 import {Hash, Bucket} from "./types.js"
 import {Manifest} from "./utils/manifest.js"
 import {randomId} from "./utils/random-id.js"
 import {MemoryBucket} from "./memory-bucket.js"
-import {saveAndHash} from "./utils/save-and-hash.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
@@ -48,7 +48,7 @@ export class Mammoth {
 		const id = randomId()
 
 		await this.#manifest.addWip(id)
-		const {hash, size} = await saveAndHash(this.#bucket, id, readable)
+		const {hash, size} = await save(this.#bucket, id, readable)
 
 		await this.#wholesome(async() => {
 			if (await this.#manifest.hasHash(hash)) {

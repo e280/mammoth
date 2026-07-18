@@ -10,13 +10,23 @@ export type Bucket = {
 	write(id: Id, readable: ReadableStream<Uint8Array>): Promise<void>
 }
 
+/** report about a file */
+export type Analysis = {
+
+	/** blake3 hash of the file's contents */
+	hash: Hash
+
+	/** filesize in bytes */
+	size: number
+}
+
 /** metadata for a single file. */
 export type Info = {
 
 	/** bucket id for this file's data. */
 	id: Id
 
-	/** file size in bytes. */
+	/** filesize in bytes. */
 	size: number
 
 	/** when this file was added to the datalake. */

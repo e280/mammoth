@@ -1,19 +1,23 @@
 
 import {hex, nap} from "@e280/stz"
 import {blake3} from "@noble/hashes/blake3.js"
+import {Analysis} from "./types.js"
 import {relaxer} from "./utils/relaxer.js"
 
-export async function hashStream(readable: ReadableStream<Uint8Array>) {
+export async function analyze(readable: ReadableStream<Uint8Array>): Promise<Analysis> {
+	let size = 0
 	const hasher = blake3.create()
 	const relax = relaxer()
 
 	for await (const chunk of readable) {
 		hasher.update(chunk)
+		size += chunk.byteLength
 
 		if (relax())
 			await nap()
 	}
 
-	return hex.fromBytes(hasher.digest())
+	const hash = hex.fromBytes(hasher.digest())
+	return {hash, size}
 }
 
