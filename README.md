@@ -4,7 +4,7 @@
 # 🦣 mammoth
 > *big files. small api.*
 
-**mammoth is a file storage typescript library.** we use it in our web apps for storing files like user uploads. it's content-addressed. files are streamed into a bucket, identified by their blake3 hash, and deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs.
+**mammoth is a file storage typescript library.** we use it in our web apps to store files like user uploads. it's content-addressed. files are streamed into a bucket, identified by their blake3 hash, and deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs.
 
 ```bash
 npm install @e280/mammoth
@@ -37,11 +37,15 @@ const mammoth = new Mammoth()
   import {Kv} from "@e280/kv"
 
   const mammoth = new Mammoth(
+
+    // bucket for blob storage
     new MemoryBucket(),
+
+    // kv for metadata bookkeeping
     new Kv(),
   )
   ```
-  defaults shown, so, this is equivalent:
+  defaults shown, this is equivalent:
   ```ts
   const mammoth = new Mammoth()
   ```
@@ -74,7 +78,7 @@ const mammoth = new Mammoth()
     ```ts
     const exists = await mammoth.has(hash)
     ```
-- **get file info,** including size in bytes, added timestamp, and bucket id.
+- **get file info,** including `size` in bytes, `added` timestamp, and bucket `id`.
     ```ts
     const {size, added, id} = await mammoth.info(hash)
     ```
