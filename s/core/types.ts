@@ -14,3 +14,7 @@ export type Stats = {
 	size: number
 }
 
+export type Wip = {
+	created: number
+}
+

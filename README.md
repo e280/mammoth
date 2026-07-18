@@ -35,8 +35,8 @@ const mammoth = new Mammoth()
   import {Kv} from "@e280/kv"
 
   const mammoth = new Mammoth(
-    new Kv(),
     new MemoryBucket(),
+    new Kv(),
   )
   ```
   defaults shown, so, this is equivalent:
@@ -51,8 +51,8 @@ const mammoth = new Mammoth()
   import {LevelDriver} from "@e280/kv/level"
 
   const mammoth = new Mammoth(
-    new Kv(new LevelDriver("./data/kv")),
     new DiskBucket("./data/bucket"),
+    new Kv(new LevelDriver("./data/kv")),
   )
   ```
 - **opfs bucket,** for local storage in the browser. *(note the import paths)*
@@ -62,8 +62,8 @@ const mammoth = new Mammoth()
   import {Kv, StorageDriver} from "@e280/kv"
 
   const mammoth = new Mammoth(
-    new Kv(new StorageDriver(localStorage)),
     new OpfsBucket(await navigator.storage.getDirectory()),
+    new Kv(new StorageDriver(localStorage)),
   )
   ```
 

@@ -1,31 +1,25 @@
 
 import {Kv} from "@e280/kv"
-import {got, hex, queue, time} from "@e280/stz"
-import {blake3} from "@noble/hashes/blake3.js"
+import {collect, got, queue} from "@e280/stz"
 
-import {Hash, Bucket, Id} from "./types.js"
 import {randomId} from "./utils/random-id.js"
+import {notFound} from "./utils/not-found.js"
 import {MemoryBucket} from "./memory-bucket.js"
+import {isExpired} from "./utils/is-expired.js"
+import {saveAndHash} from "./utils/save-and-hash.js"
+import {Hash, Bucket, Id, Stats, Wip} from "./types.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
-	#ids
-	#wip
-	#stats
-	#bucket
+	#ids // associates file hashes with bucket ids
+	#wip // temporary record of writes in-progress
+	#stats // statistics about the whole datalake
+	#bucket // file blobstore
 
-	constructor(
-
-			/** key-value metadata manifest. */
-			kv = new Kv(),
-
-			/** dumb raw file blob storage. */
-			bucket: Bucket = new MemoryBucket(),
-
-		) {
+	constructor(bucket: Bucket = new MemoryBucket(), kv = new Kv()) {
 		this.#ids = kv.scope<string>("ids")
-		this.#wip = kv.scope<{created: number}>("wip")
-		this.#stats = kv.store<{size: number}>("stats")
+		this.#wip = kv.scope<Wip>("wip")
+		this.#stats = kv.store<Stats>("stats")
 		this.#bucket = bucket
 	}
 
@@ -34,17 +28,17 @@ export class Mammoth {
 	}
 
 	async size(hash: Hash) {
-		const id = await this.#needId(hash)
+		const id = got(await this.#ids.get(hash), notFound(hash))
 		return this.#bucket.size(id)
 	}
 
 	async read(hash: Hash) {
-		const id = await this.#needId(hash)
+		const id = got(await this.#ids.get(hash), notFound(hash))
 		return this.#bucket.read(id)
 	}
 
 	async delete(hash: Hash) {
-		const id = await this.#getId(hash)
+		const id = await this.#ids.get(hash)
 		if (id) {
 			const size = await this.#bucket.size(id)
 			await this.#ids.del(hash)
@@ -57,13 +51,11 @@ export class Mammoth {
 		const id = randomId()
 		await this.#wip.set(id, {created: Date.now()})
 
-		const {hash, size} = await this.#hashAndSave(id, readable)
-
+		const {hash, size} = await saveAndHash(this.#bucket, id, readable)
 		await this.#wip.del(id)
 		await this.#finalizeWrite(hash, id, size)
 
 		void this.#selfClean().catch(() => {})
-
 		return hash
 	}
 
@@ -75,38 +67,14 @@ export class Mammoth {
 		return (await this.#stats.get()) ?? {size: 0}
 	}
 
-	async #getId(hash: Hash): Promise<Id | undefined> {
-		return this.#ids.get<string>(hash)
-	}
-
-	async #needId(hash: Hash): Promise<Id> {
-		return got(await this.#getId(hash), `file not found by hash "${hash}"`)
-	}
-
-	async #hashAndSave(id: Id, readable: ReadableStream<Uint8Array>) {
-		let size = 0
-		const pipe = new TransformStream()
-		const done = this.#bucket.write(id, pipe.readable)
-		const writer = pipe.writable.getWriter()
-		const hasher = blake3.create()
-
-		for await (const chunk of readable) {
-			await writer.write(chunk as Uint8Array<ArrayBuffer>)
-			hasher.update(chunk)
-			size += chunk.byteLength
-		}
-
-		await writer.close()
-		await done
-
-		const hash = hex.fromBytes(hasher.digest())
-		return {hash, size}
-	}
+	#addSize = queue(async(sizeChange: number) => {
+		const stats = await this.stats()
+		const size = stats.size + sizeChange
+		await this.#stats.set({...stats, size})
+	})
 
 	#finalizeWrite = queue(async(hash: Hash, id: Id, size: number) => {
-		const existingId = await this.#getId(hash)
-
-		if (existingId) {
+		if (await this.#ids.has(hash)) {
 			await this.#bucket.delete(id)
 		}
 		else {
@@ -115,22 +83,10 @@ export class Mammoth {
 		}
 	})
 
-	#addSize = queue(async(sizeChange: number) => {
-		const oldStats = await this.stats()
-		await this.#stats.set({...oldStats, size: oldStats.size + sizeChange})
-	})
-
 	#selfClean = queue(async() => {
-		const now = Date.now()
-		const expiredIds: Id[] = []
-
-		for await (const [id, {created}] of this.#wip.entries({limit: 64})) {
-			const since = now - created
-			const isExpired = since > time.days(7)
-			if (isExpired)
-				expiredIds.push(id)
-		}
-
+		const expiredIds = (await collect(this.#wip.entries({limit: 64})))
+			.filter(([,wip]) => isExpired(wip))
+			.map(([id]) => id)
 		await Promise.all(expiredIds.map(id => this.#bucket.delete(id)))
 		await this.#wip.del(...expiredIds)
 	})

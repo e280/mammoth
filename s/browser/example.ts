@@ -15,7 +15,7 @@ export async function example() {
 	const bucket = new OpfsBucket(directory)
 
 	// setup the mammoth
-	const mammoth = new Mammoth(kv, bucket)
+	const mammoth = new Mammoth(bucket, kv)
 	const myFile = new Blob([new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF])])
 
 	// write a file as an example

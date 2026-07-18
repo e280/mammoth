@@ -13,9 +13,9 @@ const blob = () => new Blob([new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF])])
 const quickstream = (b: number[]) => new Blob([new Uint8Array(b)]).stream()
 
 function setup() {
-	const manifest = new Kv()
+	const kv = new Kv()
 	const bucket = new MemoryBucket()
-	const mammoth = new Mammoth(manifest, bucket)
+	const mammoth = new Mammoth(bucket, kv)
 	return {mammoth}
 }
 
@@ -23,15 +23,13 @@ await science.run({
 	"mammoth node": test(async() => {
 		const dataDir = "data"
 		await rm(dataDir, {recursive: true, force: true})
-		const manifest = new Kv()
-		const bucket = new DiskBucket(dataDir)
-		const mammoth = new Mammoth(manifest, bucket)
+		const mammoth = new Mammoth(new DiskBucket(dataDir), new Kv())
 		const hash = await mammoth.write(blob().stream())
 		const second = await mammoth.read(hash)
 		expect(bytes.eq(await second.bytes(), await blob().bytes()))
 	}),
 
-	"mammoth": {
+	"mammoth memory": {
 		".write and .read": test(async() => {
 			const {mammoth} = setup()
 			const hash = await mammoth.write(blob().stream())
