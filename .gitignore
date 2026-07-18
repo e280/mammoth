@@ -1,6 +1,7 @@
 
 /.codex
 /x
+/data
 /temp
 /node_modules
 /yarn.lock
