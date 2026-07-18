@@ -1,9 +1,11 @@
 
 import {Kv} from "@e280/kv"
+import {rm} from "fs/promises"
 import {bytes, collect} from "@e280/stz"
 import {science, test, expect} from "@e280/science"
 
 import {Mammoth} from "./core/mammoth.js"
+import {DiskBucket} from "./node/disk-bucket.js"
 import {randomId} from "./core/utils/random-id.js"
 import {MemoryBucket} from "./core/memory-bucket.js"
 
@@ -18,6 +20,17 @@ function setup() {
 }
 
 await science.run({
+	"mammoth node": test(async() => {
+		const dataDir = "data"
+		await rm(dataDir, {recursive: true, force: true})
+		const manifest = new Kv()
+		const bucket = new DiskBucket(dataDir)
+		const mammoth = new Mammoth(manifest, bucket)
+		const hash = await mammoth.write(blob().stream())
+		const second = await mammoth.read(hash)
+		expect(bytes.eq(await second.bytes(), await blob().bytes()))
+	}),
+
 	"mammoth": {
 		".write and .read": test(async() => {
 			const {mammoth} = setup()
