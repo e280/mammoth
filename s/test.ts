@@ -1,76 +1,86 @@
 
+import {Kv} from "@e280/kv"
 import {bytes, collect} from "@e280/stz"
 import {science, test, expect} from "@e280/science"
+
+import {Mammoth} from "./core/mammoth.js"
 import {randomId} from "./core/utils/random-id.js"
-import {MemoryGlacier} from "./core/memory-glacier.js"
+import {IcebergMemory} from "./core/iceberg-memory.js"
 
 const blob = () => new Blob([new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF])])
 const quickstream = (b: number[]) => new Blob([new Uint8Array(b)]).stream()
 
+function setup() {
+	const index = new Kv<string>()
+	const iceberg = new IcebergMemory()
+	const mammoth = new Mammoth(index, iceberg)
+	return {mammoth}
+}
+
 await science.run({
-	"glacier": {
+	"mammoth": {
 		".write and .read": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hash = await glacier.write(blob().stream())
-			const second = await glacier.read(hash)
+			const {mammoth} = setup()
+			const hash = await mammoth.write(blob().stream())
+			const second = await mammoth.read(hash)
 			expect(bytes.eq(await second.bytes(), await blob().bytes()))
 		}),
 
 		".write deduplication": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hashA = await glacier.write(blob().stream())
-			const hashB = await glacier.write(blob().stream())
-			const keys = await collect(glacier.keys())
+			const {mammoth} = setup()
+			const hashA = await mammoth.write(blob().stream())
+			const hashB = await mammoth.write(blob().stream())
+			const keys = await collect(mammoth.keys())
 			expect(hashA).is(hashB)
 			expect(keys.length).is(1)
 			expect(keys[0]).is(hashA)
 		}),
 
 		".write empty file": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hash = await glacier.write(new Blob().stream())
-			expect(await glacier.size(hash)).is(0)
-			expect((await glacier.read(hash)).size).is(0)
+			const {mammoth} = setup()
+			const hash = await mammoth.write(new Blob().stream())
+			expect(await mammoth.size(hash)).is(0)
+			expect((await mammoth.read(hash)).size).is(0)
 		}),
 
 		".write distinct files": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hashA = await glacier.write(quickstream([0xC0, 0xFF, 0xEE]))
-			const hashB = await glacier.write(quickstream([0xB0, 0x0B, 0x1E, 0x5]))
+			const {mammoth} = setup()
+			const hashA = await mammoth.write(quickstream([0xC0, 0xFF, 0xEE]))
+			const hashB = await mammoth.write(quickstream([0xB0, 0x0B, 0x1E, 0x5]))
 			expect(hashA).not.is(hashB)
-			expect((await collect(glacier.keys())).length).is(2)
+			expect((await collect(mammoth.keys())).length).is(2)
 		}),
 
 		".has": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hash = await glacier.write(blob().stream())
-			expect(await glacier.has(hash)).is(true)
-			expect(await glacier.has(randomId())).is(false)
+			const {mammoth} = setup()
+			const hash = await mammoth.write(blob().stream())
+			expect(await mammoth.has(hash)).is(true)
+			expect(await mammoth.has(randomId())).is(false)
 		}),
 
 		".size": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hash = await glacier.write(blob().stream())
-			expect(await glacier.size(hash)).is(4)
+			const {mammoth} = setup()
+			const hash = await mammoth.write(blob().stream())
+			expect(await mammoth.size(hash)).is(4)
 		}),
 
 		".delete": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hash = await glacier.write(blob().stream())
-			await glacier.delete(hash)
-			expect(await glacier.has(hash)).is(false)
-			expect(await collect(glacier.keys())).deep([])
+			const {mammoth} = setup()
+			const hash = await mammoth.write(blob().stream())
+			await mammoth.delete(hash)
+			expect(await mammoth.has(hash)).is(false)
+			expect(await collect(mammoth.keys())).deep([])
 		}),
 
 		".delete idempotent": test(async() => {
-			const glacier = new MemoryGlacier()
-			await glacier.delete(randomId())
+			const {mammoth} = setup()
+			await mammoth.delete(randomId())
 		}),
 
 		".keys": test(async() => {
-			const glacier = new MemoryGlacier()
-			const hash = await glacier.write(blob().stream())
-			const keys = await collect(glacier.keys())
+			const {mammoth} = setup()
+			const hash = await mammoth.write(blob().stream())
+			const keys = await collect(mammoth.keys())
 			expect(keys.length).is(1)
 			expect(keys[0]).is(hash)
 		}),
