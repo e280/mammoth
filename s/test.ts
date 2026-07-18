@@ -43,7 +43,7 @@ await science.run({
 			const {mammoth} = setup()
 			const hashA = await mammoth.write(blob().stream())
 			const hashB = await mammoth.write(blob().stream())
-			const keys = await collect(mammoth.keys())
+			const keys = await collect(mammoth.hashes())
 			expect(hashA).is(hashB)
 			expect(keys.length).is(1)
 			expect(keys[0]).is(hashA)
@@ -61,7 +61,7 @@ await science.run({
 			const hashA = await mammoth.write(quickstream([0xC0, 0xFF, 0xEE]))
 			const hashB = await mammoth.write(quickstream([0xB0, 0x0B, 0x1E, 0x5]))
 			expect(hashA).not.is(hashB)
-			expect((await collect(mammoth.keys())).length).is(2)
+			expect((await collect(mammoth.hashes())).length).is(2)
 		}),
 
 		".stats": test(async() => {
@@ -95,7 +95,7 @@ await science.run({
 			const hash = await mammoth.write(blob().stream())
 			await mammoth.delete(hash)
 			expect(await mammoth.has(hash)).is(false)
-			expect(await collect(mammoth.keys())).deep([])
+			expect(await collect(mammoth.hashes())).deep([])
 		}),
 
 		".delete idempotent": test(async() => {
@@ -106,7 +106,7 @@ await science.run({
 		".keys": test(async() => {
 			const {mammoth} = setup()
 			const hash = await mammoth.write(blob().stream())
-			const keys = await collect(mammoth.keys())
+			const keys = await collect(mammoth.hashes())
 			expect(keys.length).is(1)
 			expect(keys[0]).is(hash)
 		}),

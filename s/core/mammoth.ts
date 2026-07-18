@@ -72,7 +72,7 @@ export class Mammoth {
 		return hash
 	}
 
-	async* keys() {
+	async* hashes() {
 		yield* this.#ids.keys()
 	}
 
