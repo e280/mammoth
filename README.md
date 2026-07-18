@@ -4,7 +4,7 @@
 # 🦣 mammoth
 > *big files. small api.*
 
-**mammoth is a content-addressed file store.** files are streamed into a bucket, identified by their blake3 hash, and automatically deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs.
+**mammoth is a content-addressed file storage typescript library.** we use it in our web apps for storing files like user uploads. files are streamed into a bucket, identified by their blake3 hash, and automatically deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs.
 
 ```bash
 npm install @e280/mammoth
