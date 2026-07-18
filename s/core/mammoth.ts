@@ -1,15 +1,16 @@
 
 import {Kv} from "@e280/kv"
-import {got, hex, queue} from "@e280/stz"
+import {got, hex, queue, time} from "@e280/stz"
 import {blake3} from "@noble/hashes/blake3.js"
 
-import {randomId} from "./utils/random-id.js"
 import {Hash, Bucket, Id} from "./types.js"
+import {randomId} from "./utils/random-id.js"
 import {MemoryBucket} from "./memory-bucket.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
 	#ids
+	#wip
 	#stats
 	#bucket
 
@@ -20,8 +21,10 @@ export class Mammoth {
 
 			/** dumb raw file blob storage. */
 			bucket: Bucket = new MemoryBucket(),
+
 		) {
 		this.#ids = kv.scope<string>("ids")
+		this.#wip = kv.scope<{created: number}>("wip")
 		this.#stats = kv.store<{size: number}>("stats")
 		this.#bucket = bucket
 	}
@@ -52,6 +55,8 @@ export class Mammoth {
 
 	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
 		const id = randomId()
+		await this.#wip.set(id, {created: Date.now()})
+
 		const pipe = new TransformStream()
 		const done = this.#bucket.write(id, pipe.readable)
 		const writer = pipe.writable.getWriter()
@@ -67,8 +72,13 @@ export class Mammoth {
 
 		await writer.close()
 		await done
+
 		const hash = hex.fromBytes(hasher.digest())
+		await this.#wip.del(id)
 		await this.#finalizeWrite(hash, id, size)
+
+		void this.#selfClean().catch(() => {})
+
 		return hash
 	}
 
@@ -103,6 +113,21 @@ export class Mammoth {
 	#addSize = queue(async(sizeChange: number) => {
 		const oldStats = await this.stats()
 		await this.#stats.set({...oldStats, size: oldStats.size + sizeChange})
+	})
+
+	#selfClean = queue(async() => {
+		const now = Date.now()
+		const expiredIds: Id[] = []
+
+		for await (const [id, {created}] of this.#wip.entries({limit: 64})) {
+			const since = now - created
+			const isExpired = since > time.days(7)
+			if (isExpired)
+				expiredIds.push(id)
+		}
+
+		await Promise.all(expiredIds.map(id => this.#bucket.delete(id)))
+		await this.#wip.del(...expiredIds)
 	})
 }
 
