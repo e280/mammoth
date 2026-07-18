@@ -4,10 +4,10 @@ import {lane, queue} from "@e280/stz"
 
 import {consts} from "./consts.js"
 import {save} from "./utils/save.js"
+import {Hash, Bucket} from "./types.js"
 import {Manifest} from "./utils/manifest.js"
 import {randomId} from "./utils/random-id.js"
 import {MemoryBucket} from "./memory-bucket.js"
-import {Hash, Bucket, Analysis} from "./types.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
