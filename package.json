@@ -1,6 +1,6 @@
 {
 	"name": "@e280/mammoth",
-	"version": "0.1.0-12",
+	"version": "0.1.0-13",
 	"description": "big file storage",
 	"license": "MIT",
 	"author": "Chase Moskal <chasemoskal@gmail.com>",
