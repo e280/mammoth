@@ -41,7 +41,7 @@ export class Manifest {
 	}
 
 	async getInfo(hash: Hash) {
-		return await this.#info.get(hash)
+		return this.#info.get(hash)
 	}
 
 	async needInfo(hash: Hash) {
