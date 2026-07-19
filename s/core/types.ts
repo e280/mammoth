@@ -43,7 +43,7 @@ export type Stats = {
 	count: number
 }
 
-export type Wip = {
+export type WriteRecord = {
 	created: number
 }
 

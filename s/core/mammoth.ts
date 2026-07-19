@@ -6,9 +6,14 @@ import {consts} from "./consts.js"
 import {save} from "./utils/save.js"
 import {Hash, Bucket} from "./types.js"
 import {cleanup} from "./utils/cleanup.js"
-import {Manifest} from "./utils/manifest.js"
 import {randomId} from "./utils/random-id.js"
 import {MemoryBucket} from "./memory-bucket.js"
+import {Manifest} from "./manifest/manifest.js"
+import {commit} from "./manifest/fns/commit.js"
+import {needInfo} from "./manifest/fns/need-info.js"
+import {getStats} from "./manifest/fns/get-stats.js"
+import {scheduleDeletion} from "./manifest/fns/schedule-deletion.js"
+import {moveWriteToTrash} from "./manifest/fns/move-write-to-trash.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
@@ -22,47 +27,47 @@ export class Mammoth {
 	}
 
 	async* hashes() {
-		yield* this.#manifest.hashes()
+		yield* this.#manifest.catalog.keys()
 	}
 
 	async has(hash: Hash) {
-		return this.#manifest.hasHash(hash)
+		return this.#manifest.catalog.has(hash)
 	}
 
 	async info(hash: Hash) {
-		return this.#manifest.needInfo(hash)
+		return needInfo(this.#manifest, hash)
 	}
 
 	async stats() {
-		return this.#manifest.getStats()
+		return getStats(this.#manifest)
 	}
 
 	async read(hash: Hash) {
-		const {id} = await this.#manifest.needInfo(hash)
+		const {id} = await this.info(hash)
 		return this.#bucket.read(id)
 	}
 
 	async delete(hash: Hash) {
 		await this.#wholesome(async() => {
-			const info = await this.#manifest.getInfo(hash)
+			const info = await this.#manifest.catalog.get(hash)
 			if (info)
-				await this.#manifest.scheduleDeletion(hash, info)
+				await scheduleDeletion(this.#manifest, hash, info)
 		})
 		await this.#cleanup()
 	}
 
 	async write(readable: ReadableStream<Uint8Array>): Promise<Hash> {
 		const id = randomId()
-		await this.#manifest.addWip(id)
+		await this.#manifest.writes.set(id, {created: Date.now()})
 		try {
 			const analysis = await save(this.#bucket, id, readable)
 			const {hash, size} = analysis
 			const info = {id, size, added: Date.now()}
-			await this.#wholesome(() => this.#manifest.commit(hash, info))
+			await this.#wholesome(() => commit(this.#manifest, hash, info))
 			return analysis.hash
 		}
 		catch (error) {
-			await this.#manifest.moveWipToTrash(id)
+			await moveWriteToTrash(this.#manifest, id)
 			throw error
 		}
 		finally {

@@ -1,14 +1,16 @@
 
 import {Bucket} from "../types.js"
-import {Manifest} from "./manifest.js"
+import {Manifest} from "../manifest/manifest.js"
+import {getExpiredWrites} from "../manifest/fns/get-expired-writes.js"
+import {moveWriteToTrash} from "../manifest/fns/move-write-to-trash.js"
 
 export async function cleanup(bucket: Bucket, manifest: Manifest) {
-	for await (const id of manifest.getExpiredWipIds())
-		await manifest.moveWipToTrash(id)
+	for await (const id of getExpiredWrites(manifest))
+		await moveWriteToTrash(manifest, id)
 
-	for await (const id of manifest.listTrashIds()) {
+	for await (const id of manifest.trash.keys()) {
 		await bucket.delete(id)
-		await manifest.dropTrashRecord(id)
+		await manifest.trash.del(id)
 	}
 }
 

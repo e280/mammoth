@@ -1,9 +1,9 @@
 
 import {time} from "@e280/stz"
-import {Wip} from "../types.js"
 import {consts} from "../consts.js"
+import {WriteRecord} from "../types.js"
 
-export function isExpired({created}: Wip) {
+export function isExpired({created}: WriteRecord) {
 	const since = Date.now() - created
 	return since > time.days(consts.expiry_time)
 }
