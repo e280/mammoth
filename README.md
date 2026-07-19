@@ -93,6 +93,27 @@ const mammoth = new Mammoth()
       console.log(hash)
     ```
 
+### 🦣 mammoth-brained tips.
+- **`analyze` is for hashing files**
+    ```ts
+    import {analyze} from "@e280/mammoth"
+
+    const {hash, size} = await analyze(blob.stream())
+    ```
+- **`analyze` can help you avoid unnecessary uploads**
+    ```ts
+    const {hash} = await analyze(blob.stream())
+
+    if (!await mammoth.has(hash))
+      await mammoth.write(blob.stream())
+    ```
+- **`streamify` makes a stream for a Uint8Array**
+    ```ts
+    import {streamify} from "@e280/mammoth"
+
+    const readable = await streamify(new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF]))
+    ```
+
 
 
 <br/><br/>
