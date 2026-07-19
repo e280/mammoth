@@ -4,10 +4,10 @@
 # 🦣 mammoth
 > *big files. small api.*
 
-**mammoth is a file storage typescript library.** we use it in our web apps to store files like user uploads. it's content-addressed. files are streamed into a bucket, identified by their blake3 hash, and deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs.
+**mammoth is a file storage typescript library.** we use it in our web apps to store files like user uploads. it's content-addressed. files are streamed into a bucket, identified by their blake3 hash, and deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs. mammoth uses [kv](https://github.com/e280/kv) for bookkeeping.
 
 ```bash
-npm install @e280/mammoth
+npm install @e280/mammoth @e280/kv
 ```
 
 ```ts

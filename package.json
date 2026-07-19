@@ -22,8 +22,10 @@
 		"test": "node x/test.js",
 		"count": "find s -path '*/_archive' -prune -o -name '*.ts' -exec wc -l {} +"
 	},
+	"peerDependencies": {
+		"@e280/kv": "^0.1.5"
+	},
 	"dependencies": {
-		"@e280/kv": "^0.1.5",
 		"@e280/stz": "^0.3.5",
 		"@noble/hashes": "^2.2.0"
 	},
