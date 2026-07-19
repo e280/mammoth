@@ -10,19 +10,17 @@ export async function save(
 	): Promise<Analysis> {
 
 	let size = 0
-	const pipe = new TransformStream()
-	const done = bucket.write(id, pipe.readable)
-	const writer = pipe.writable.getWriter()
 	const hasher = blake3.create()
 
-	for await (const chunk of readable) {
-		await writer.write(chunk as Uint8Array<ArrayBuffer>)
-		hasher.update(chunk)
-		size += chunk.byteLength
-	}
-
-	await writer.close()
-	await done
+	await bucket.write(id, readable.pipeThrough(
+		new TransformStream({
+			transform(chunk, controller) {
+				hasher.update(chunk)
+				size += chunk.byteLength
+				controller.enqueue(chunk)
+			},
+		})
+	))
 
 	const hash = hex.fromBytes(hasher.digest())
 	return {hash, size}
