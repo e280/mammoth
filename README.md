@@ -16,7 +16,7 @@ import {Mammoth} from "@e280/mammoth"
 const mammoth = new Mammoth()
 ```
 
-### 🦣 mammoth stores files.
+## 🦣 mammoth stores files.
 - **write a file,** and you get back its blake3 `hash` and `size` in bytes.
     ```ts
     const hash = await mammoth.write(blob.stream())
@@ -30,7 +30,7 @@ const mammoth = new Mammoth()
     await mammoth.delete(hash)
     ```
 
-### 🦣 mammoth is bucket-agnostic.
+## 🦣 mammoth is bucket-agnostic.
 - **memory bucket,** for testing.
   ```ts
   import {Mammoth, MemoryBucket} from "@e280/mammoth"
@@ -73,7 +73,7 @@ const mammoth = new Mammoth()
   )
   ```
 
-### 🦣 more mammoth methods.
+## 🦣 more mammoth methods.
 - **check if a file exists,** get back a boolean.
     ```ts
     const exists = await mammoth.has(hash)
@@ -93,21 +93,21 @@ const mammoth = new Mammoth()
       console.log(hash)
     ```
 
-### 🦣 mammoth-brained tips.
-- **`analyze` is for hashing files**
+## 🦣 mammoth-brained tips.
+- **`analyze` is for hashing files.**
     ```ts
     import {analyze} from "@e280/mammoth"
 
     const {hash, size} = await analyze(blob.stream())
     ```
-- **`analyze` can help you avoid unnecessary uploads**
+- **`analyze` can help you avoid unnecessary uploads.**
     ```ts
     const {hash} = await analyze(blob.stream())
 
     if (!await mammoth.has(hash))
       await mammoth.write(blob.stream())
     ```
-- **`streamify` makes a stream for a Uint8Array**
+- **`streamify` makes a stream for a Uint8Array.**
     ```ts
     import {streamify} from "@e280/mammoth"
 
