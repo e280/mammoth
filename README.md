@@ -87,10 +87,10 @@ const mammoth = new Mammoth()
     await mammoth.stats()
       // {count: 123, size: 123456789}
     ```
-- **loop over all hashes,** for all stored files.
+- **loop over every file,** with their hashes and infos.
     ```ts
-    for await (const hash of mammoth.hashes())
-      console.log(hash)
+    for await (const [hash, info] of mammoth.entries())
+      console.log(hash, info)
     ```
 
 ## 🦣 mammoth-brained tips.

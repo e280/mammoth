@@ -26,8 +26,8 @@ export class Mammoth {
 		this.#manifest = new Manifest(kv)
 	}
 
-	async* hashes() {
-		yield* this.#manifest.catalog.keys()
+	async* entries() {
+		yield* this.#manifest.catalog.entries()
 	}
 
 	async has(hash: Hash) {
