@@ -5,6 +5,7 @@ import {lane, queue} from "@e280/stz"
 import {consts} from "./consts.js"
 import {save} from "./utils/save.js"
 import {Hash, Bucket} from "./types.js"
+import {cleanup} from "./utils/cleanup.js"
 import {Manifest} from "./utils/manifest.js"
 import {randomId} from "./utils/random-id.js"
 import {MemoryBucket} from "./memory-bucket.js"
@@ -69,14 +70,6 @@ export class Mammoth {
 		}
 	}
 
-	#cleanup = queue(async() => {
-		for await (const id of this.#manifest.getExpiredWipIds())
-			await this.#manifest.moveWipToTrash(id)
-
-		for await (const id of this.#manifest.listTrashIds()) {
-			await this.#bucket.delete(id)
-			await this.#manifest.dropTrashRecord(id)
-		}
-	}, consts.max_jobs)
+	#cleanup = queue(() => cleanup(this.#bucket, this.#manifest), consts.max_jobs)
 }
 
