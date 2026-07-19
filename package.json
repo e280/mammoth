@@ -26,8 +26,8 @@
 		"@e280/kv": "^0.1.5"
 	},
 	"dependencies": {
-		"@e280/stz": "^0.3.5",
-		"@noble/hashes": "^2.2.0"
+		"@awasm/noble": "^0.1.4",
+		"@e280/stz": "^0.3.5"
 	},
 	"devDependencies": {
 		"@e280/octo": "^0.1.3",

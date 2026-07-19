@@ -1,6 +1,6 @@
 
 import {hex, nap} from "@e280/stz"
-import {blake3} from "@noble/hashes/blake3.js"
+import {blake3} from "@awasm/noble"
 import {Analysis} from "./types.js"
 import {relaxer} from "./utils/relaxer.js"
 
