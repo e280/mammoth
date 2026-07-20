@@ -67,7 +67,7 @@ const mammoth = new Mammoth()
 
   const mammoth = new Mammoth(
     new OpfsBucket(await navigator.storage.getDirectory()),
-    new Kv(new IdbMagazine(await idpOpen("mammoth"))),
+    new Kv(new IdbMagazine(await idbOpen("mammoth"))),
   )
   ```
 
