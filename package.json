@@ -9,7 +9,6 @@
 	"sideEffects": false,
 	"exports": {
 		".": "./x/core/index.js",
-		"./browser": "./x/browser/index.js",
 		"./node": "./x/node/index.js"
 	},
 	"files": [

@@ -7,7 +7,7 @@ import {science, test, expect} from "@e280/science"
 import {Mammoth} from "./core/mammoth.js"
 import {DiskBucket} from "./node/disk-bucket.js"
 import {randomId} from "./core/utils/random-id.js"
-import {MemoryBucket} from "./core/memory-bucket.js"
+import {MemoryBucket} from "./core/buckets/memory-bucket.js"
 
 const blob = () => new Blob([new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF])])
 const quickstream = (b: number[]) => new Blob([new Uint8Array(b)]).stream()

@@ -1,7 +1,7 @@
 
 import {bytes, got, nap} from "@e280/stz"
-import {Bucket, Id} from "./types.js"
-import {relaxer} from "./utils/relaxer.js"
+import {Bucket, Id} from "../types.js"
+import {relaxer} from "../utils/relaxer.js"
 
 export class MemoryBucket implements Bucket {
 	#map = new Map<string, Uint8Array>()

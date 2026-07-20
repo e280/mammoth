@@ -1,10 +1,13 @@
 
 import {hex, nap} from "@e280/stz"
 import {blake3} from "@awasm/noble"
-import {Analysis} from "./types.js"
-import {relaxer} from "./utils/relaxer.js"
+import {Analysis} from "../types.js"
+import {relaxer} from "../utils/relaxer.js"
 
-export async function analyze(readable: ReadableStream<Uint8Array>): Promise<Analysis> {
+export async function analyze(
+		readable: ReadableStream<Uint8Array>
+	): Promise<Analysis> {
+
 	let size = 0
 	const hasher = blake3.create()
 	const relax = relaxer()

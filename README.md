@@ -49,27 +49,25 @@ const mammoth = new Mammoth()
   ```ts
   const mammoth = new Mammoth()
   ```
-- **disk bucket,** for nodejs servers. *(note the import paths)*
+- **disk bucket,** for nodejs servers, example using [leveldb](https://github.com/google/leveldb). *(note the import paths)*
   ```ts
-  import {Mammoth} from "@e280/mammoth"
-  import {DiskBucket} from "@e280/mammoth/node"
-  import {Kv} from "@e280/kv"
-  import {LevelDriver} from "@e280/kv/level"
+  import {Mammoth, DiskBucket} from "@e280/mammoth/node"
+  import {Kv, LevelMagazine} from "@e280/kv"
+  import {Level} from "level"
 
   const mammoth = new Mammoth(
-    new DiskBucket("./data/bucket"),
-    new Kv(new LevelDriver("./data/kv")),
+    new DiskBucket("./data/mammoth/bucket"),
+    new Kv(new LevelMagazine(new Level("./data/mammoth/kv"))),
   )
   ```
-- **opfs bucket,** for local storage in the browser. *(note the import paths)*
+- **[opfs](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) bucket and [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) kv,** for clientside in-browser storage.
   ```ts
-  import {Mammoth} from "@e280/mammoth"
-  import {OpfsBucket} from "@e280/mammoth/browser"
-  import {Kv, StorageDriver} from "@e280/kv"
+  import {Mammoth, OpfsBucket} from "@e280/mammoth"
+  import {Kv, idbOpen, IdbMagazine} from "@e280/kv"
 
   const mammoth = new Mammoth(
     new OpfsBucket(await navigator.storage.getDirectory()),
-    new Kv(new StorageDriver(localStorage)),
+    new Kv(new IdbMagazine(await idpOpen("mammoth"))),
   )
   ```
 

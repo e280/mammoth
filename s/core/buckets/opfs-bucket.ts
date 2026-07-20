@@ -1,6 +1,6 @@
 
-import {Bucket, Id} from "../core/types.js"
-import {isNotFound} from "./utils/is-not-found.js"
+import {Bucket, Id} from "../types.js"
+import {isNotFoundErr} from "../utils/is-not-found.js"
 
 export class OpfsBucket implements Bucket {
 	#directory
@@ -15,7 +15,7 @@ export class OpfsBucket implements Bucket {
 			return true
 		}
 		catch (error) {
-			if (isNotFound(error)) return false
+			if (isNotFoundErr(error)) return false
 			throw error
 		}
 	}
@@ -25,7 +25,7 @@ export class OpfsBucket implements Bucket {
 			await this.#directory.removeEntry(id)
 		}
 		catch (error) {
-			if (!isNotFound(error))
+			if (!isNotFoundErr(error))
 				throw error
 		}
 	}
