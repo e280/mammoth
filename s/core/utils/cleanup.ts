@@ -10,7 +10,7 @@ export async function cleanup(bucket: Bucket, manifest: Manifest) {
 
 	for await (const id of manifest.trash.keys()) {
 		await bucket.delete(id)
-		await manifest.trash.del(id)
+		await manifest.trash.delete(id)
 	}
 }
 

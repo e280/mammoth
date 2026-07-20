@@ -10,10 +10,10 @@ export async function scheduleDeletion(manifest: Manifest, hash: Hash, info: Inf
 	s.count -= 1
 	s.size -= info.size
 
-	await kv.transaction(() => [
-		catalog.write.del(hash),
-		trash.write.set(info.id, true),
-		stats.write.set(s),
+	await kv.commit([
+		catalog.op.delete(hash),
+		trash.op.set(info.id, true),
+		stats.op.set(s),
 	])
 }
 

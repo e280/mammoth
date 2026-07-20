@@ -1,12 +1,12 @@
 
-import {Kv, StorageDriver} from "@e280/kv"
+import {Kv, StorageMagazine} from "@e280/kv"
 import {Mammoth} from "../core/mammoth.js"
 import {OpfsBucket} from "./opfs-bucket.js"
 
 export async function example() {
 
 	// setup the localstorage kv
-	const driver = new StorageDriver(window.localStorage)
+	const driver = new StorageMagazine()
 	const kv = new Kv(driver).scope("mammoth")
 
 	// setup the opfs file bucket

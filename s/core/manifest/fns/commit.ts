@@ -11,16 +11,16 @@ export async function commit(manifest: Manifest, hash: Hash, info: Info) {
 		const s = await getStats(manifest)
 		s.count += 1
 		s.size += info.size
-		await kv.transaction(() => [
-			writes.write.del(info.id),
-			catalog.write.set(hash, info),
-			stats.write.set(s)
+		await kv.commit([
+			writes.op.delete(info.id),
+			catalog.op.set(hash, info),
+			stats.op.set(s),
 		])
 	}
 	else {
-		await kv.transaction(() => [
-			writes.write.del(info.id),
-			trash.write.set(info.id, true),
+		await kv.commit([
+			writes.op.delete(info.id),
+			trash.op.set(info.id, true),
 		])
 	}
 }
