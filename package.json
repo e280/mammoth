@@ -22,7 +22,7 @@
 		"count": "find s -path '*/_archive' -prune -o -name '*.ts' -exec wc -l {} +"
 	},
 	"peerDependencies": {
-		"@e280/kv": "^0.2.0-1"
+		"@e280/kv": "^0.2.0-2"
 	},
 	"dependencies": {
 		"@awasm/noble": "^0.1.4",

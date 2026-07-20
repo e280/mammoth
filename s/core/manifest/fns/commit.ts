@@ -12,15 +12,15 @@ export async function commit(manifest: Manifest, hash: Hash, info: Info) {
 		s.count += 1
 		s.size += info.size
 		await kv.commit([
-			writes.op.delete(info.id),
-			catalog.op.set(hash, info),
-			stats.op.set(s),
+			writes.x.delete(info.id),
+			catalog.x.set(hash, info),
+			stats.x.set(s),
 		])
 	}
 	else {
 		await kv.commit([
-			writes.op.delete(info.id),
-			trash.op.set(info.id, true),
+			writes.x.delete(info.id),
+			trash.x.set(info.id, true),
 		])
 	}
 }
