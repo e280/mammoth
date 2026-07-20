@@ -43,7 +43,3 @@ export type Stats = {
 	count: number
 }
 
-export type WriteRecord = {
-	created: number
-}
-

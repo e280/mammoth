@@ -1,6 +1,7 @@
 
 import {Kv} from "@e280/kv"
-import {Info, Stats, WriteRecord} from "../types.js"
+import {Write} from "./types.js"
+import {Info, Stats} from "../types.js"
 
 export class Manifest {
 
@@ -19,7 +20,7 @@ export class Manifest {
 	constructor(public kv: Kv) {
 		this.stats = kv.store<Stats>("stats")
 		this.catalog = kv.scope<Info>("catalog")
-		this.writes = kv.scope<WriteRecord>("writes")
+		this.writes = kv.scope<Write>("writes")
 		this.trash = kv.scope<true>("trash")
 	}
 }
