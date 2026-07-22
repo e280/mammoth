@@ -18,7 +18,7 @@ export class Manifest {
 	trash
 
 	constructor(public kv: Kv) {
-		this.stats = kv.store<Stats>("stats")
+		this.stats = kv.cell<Stats>("stats")
 		this.catalog = kv.scope<Info>("catalog")
 		this.writes = kv.scope<Write>("writes")
 		this.trash = kv.scope<true>("trash")
