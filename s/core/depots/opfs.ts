@@ -1,8 +1,8 @@
 
-import {Bucket, Id} from "../types.js"
+import {Depot, Id} from "../types.js"
 import {isNotFoundErr} from "../utils/is-not-found.js"
 
-export class OpfsBucket implements Bucket {
+export class OpfsDepot implements Depot {
 	#directory
 
 	constructor(directory: FileSystemDirectoryHandle) {

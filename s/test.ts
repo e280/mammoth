@@ -5,17 +5,17 @@ import {bytes, collect} from "@e280/stz"
 import {science, test, expect} from "@e280/science"
 
 import {Mammoth} from "./core/mammoth.js"
-import {DiskBucket} from "./node/disk-bucket.js"
+import {DiskDepot} from "./node/disk-depot.js"
 import {randomId} from "./core/utils/random-id.js"
-import {MemoryBucket} from "./core/buckets/memory-bucket.js"
+import {MemoryDepot} from "./core/depots/memory.js"
 
 const blob = () => new Blob([new Uint8Array([0xDE, 0xAD, 0xBE, 0xEF])])
 const quickstream = (b: number[]) => new Blob([new Uint8Array(b)]).stream()
 
 function setup() {
 	const kv = new Kv()
-	const bucket = new MemoryBucket()
-	const mammoth = new Mammoth(bucket, kv)
+	const depot = new MemoryDepot()
+	const mammoth = new Mammoth(depot, kv)
 	return {mammoth}
 }
 
@@ -23,7 +23,7 @@ await science.run({
 	"mammoth node": test(async() => {
 		const dataDir = "data"
 		await rm(dataDir, {recursive: true, force: true})
-		const mammoth = new Mammoth(new DiskBucket(dataDir), new Kv())
+		const mammoth = new Mammoth(new DiskDepot(dataDir), new Kv())
 		const hash = await mammoth.write(blob().stream())
 		const second = await mammoth.read(hash)
 		expect(bytes.eq(await second.bytes(), await blob().bytes()))

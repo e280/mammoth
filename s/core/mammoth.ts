@@ -4,25 +4,25 @@ import {lane, queue} from "@e280/stz"
 
 import {consts} from "./consts.js"
 import {save} from "./utils/save.js"
-import {Hash, Bucket} from "./types.js"
+import {Hash, Depot} from "./types.js"
 import {cleanup} from "./utils/cleanup.js"
 import {randomId} from "./utils/random-id.js"
 import {Manifest} from "./manifest/manifest.js"
 import {commit} from "./manifest/fns/commit.js"
 import {needInfo} from "./manifest/fns/need-info.js"
 import {getStats} from "./manifest/fns/get-stats.js"
-import {MemoryBucket} from "./buckets/memory-bucket.js"
+import {MemoryDepot} from "./depots/memory.js"
 import {scheduleDeletion} from "./manifest/fns/schedule-deletion.js"
 import {moveWriteToTrash} from "./manifest/fns/move-write-to-trash.js"
 
 /** file storage datalake, content-addressed with blake3 hashes. */
 export class Mammoth {
-	#bucket
+	#depot
 	#manifest
 	#wholesome = lane(consts.max_jobs)
 
-	constructor(bucket: Bucket = new MemoryBucket(), kv = new Kv()) {
-		this.#bucket = bucket
+	constructor(depot: Depot = new MemoryDepot(), kv = new Kv()) {
+		this.#depot = depot
 		this.#manifest = new Manifest(kv)
 	}
 
@@ -44,7 +44,7 @@ export class Mammoth {
 
 	async read(hash: Hash) {
 		const {id} = await this.info(hash)
-		return this.#bucket.read(id)
+		return this.#depot.read(id)
 	}
 
 	async delete(hash: Hash) {
@@ -60,7 +60,7 @@ export class Mammoth {
 		const id = randomId()
 		await this.#manifest.writes.set(id, {created: Date.now()})
 		try {
-			const analysis = await save(this.#bucket, id, readable)
+			const analysis = await save(this.#depot, id, readable)
 			const {hash, size} = analysis
 			const info = {id, size, added: Date.now()}
 			await this.#wholesome(() => commit(this.#manifest, hash, info))
@@ -75,6 +75,6 @@ export class Mammoth {
 		}
 	}
 
-	#cleanup = queue(() => cleanup(this.#bucket, this.#manifest), consts.max_jobs)
+	#cleanup = queue(() => cleanup(this.#depot, this.#manifest), consts.max_jobs)
 }
 

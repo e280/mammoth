@@ -1,9 +1,9 @@
 
 import {bytes, got, nap} from "@e280/stz"
-import {Bucket, Id} from "../types.js"
+import {Depot, Id} from "../types.js"
 import {relaxer} from "../utils/relaxer.js"
 
-export class MemoryBucket implements Bucket {
+export class MemoryDepot implements Depot {
 	#map = new Map<string, Uint8Array>()
 
 	async has(id: Id) {

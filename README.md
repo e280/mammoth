@@ -4,7 +4,7 @@
 # 🦣 mammoth
 > *big files. small api.*
 
-**mammoth is a file storage typescript library.** we use it in our web apps to store files like user uploads. it's content-addressed. files are streamed into a bucket, identified by their blake3 hash, and deduplicated. mammoth works the same whether it's backed by a bucket in memory, on disk, in the cloud, or in the browser's opfs. mammoth uses [kv](https://github.com/e280/kv) for bookkeeping.
+**mammoth is a file storage typescript library.** we use it in our web apps to store files like user uploads. it's content-addressed. files are streamed into a depot, identified by their blake3 hash, and deduplicated. mammoth works the same whether it's backed in memory, on disk, in the cloud, or in the browser's opfs. mammoth uses [kv](https://github.com/e280/kv) for bookkeeping.
 
 ```bash
 npm install @e280/mammoth @e280/kv
@@ -30,16 +30,16 @@ const mammoth = new Mammoth()
     await mammoth.delete(hash)
     ```
 
-## 🦣 mammoth is bucket-agnostic.
-- **memory bucket,** for testing.
+## 🦣 mammoth is depot-agnostic.
+- **memory depot,** for testing.
   ```ts
-  import {Mammoth, MemoryBucket} from "@e280/mammoth"
+  import {Mammoth, MemoryDepot} from "@e280/mammoth"
   import {Kv} from "@e280/kv"
 
   const mammoth = new Mammoth(
 
-    // bucket for blob storage
-    new MemoryBucket(),
+    // depot is a bucket for blob storage
+    new MemoryDepot(),
 
     // kv for metadata bookkeeping
     new Kv(),
@@ -49,24 +49,24 @@ const mammoth = new Mammoth()
   ```ts
   const mammoth = new Mammoth()
   ```
-- **disk bucket,** for nodejs servers, example using [leveldb](https://github.com/google/leveldb). *(note the import paths)*
+- **disk depot,** for nodejs servers, example using [leveldb](https://github.com/google/leveldb). *(note the import paths)*
   ```ts
-  import {Mammoth, DiskBucket} from "@e280/mammoth/node"
+  import {Mammoth, DiskDepot} from "@e280/mammoth/node"
   import {Kv, LevelMagazine} from "@e280/kv"
   import {Level} from "level"
 
   const mammoth = new Mammoth(
-    new DiskBucket("./data/mammoth/bucket"),
+    new DiskDepot("./data/mammoth/depot"),
     new Kv(new LevelMagazine(new Level("./data/mammoth/kv"))),
   )
   ```
-- **[opfs](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) bucket and [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) kv,** for clientside in-browser storage.
+- **[opfs](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system) depot,** with [indexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) kv for clientside in-browser storage.
   ```ts
-  import {Mammoth, OpfsBucket} from "@e280/mammoth"
+  import {Mammoth, OpfsDepot} from "@e280/mammoth"
   import {Kv, idbOpen, IdbMagazine} from "@e280/kv"
 
   const mammoth = new Mammoth(
-    new OpfsBucket(await navigator.storage.getDirectory()),
+    new OpfsDepot(await navigator.storage.getDirectory()),
     new Kv(new IdbMagazine(await idbOpen("mammoth"))),
   )
   ```
@@ -76,7 +76,7 @@ const mammoth = new Mammoth()
     ```ts
     const exists = await mammoth.has(hash)
     ```
-- **get file info,** including `size` in bytes, `added` timestamp, and bucket `id`.
+- **get file info,** including `size` in bytes, `added` timestamp, and depot `id`.
     ```ts
     const {size, added, id} = await mammoth.info(hash)
     ```

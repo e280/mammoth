@@ -8,13 +8,13 @@ export class Manifest {
 	/** statistics about the whole datalake */
 	stats
 
-	/** associates file hashes with bucket ids */
+	/** associates file hashes with depot ids */
 	catalog
 
 	/** temporary record of writes in-progress */
 	writes
 
-	/** bucket ids that are pending deletion */
+	/** depot ids that are pending deletion */
 	trash
 
 	constructor(public kv: Kv) {

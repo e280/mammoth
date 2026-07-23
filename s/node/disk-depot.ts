@@ -5,10 +5,10 @@ import {pipeline} from "node:stream/promises"
 import {mkdir, stat, unlink} from "node:fs/promises"
 import {createWriteStream, openAsBlob} from "node:fs"
 
-import {Bucket, Id} from "../core/types.js"
+import {Depot, Id} from "../core/types.js"
 import {isNotFound} from "./utils/is-not-found.js"
 
-export class DiskBucket implements Bucket {
+export class DiskDepot implements Depot {
 	#directory
 
 	constructor(directory: string) {

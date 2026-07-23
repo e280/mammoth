@@ -1,10 +1,10 @@
 
 import {hex} from "@e280/stz"
 import {blake3} from "@awasm/noble"
-import {Analysis, Bucket, Id} from "../types.js"
+import {Analysis, Depot, Id} from "../types.js"
 
 export async function save(
-		bucket: Bucket,
+		depot: Depot,
 		id: Id,
 		readable: ReadableStream<Uint8Array>,
 	): Promise<Analysis> {
@@ -12,7 +12,7 @@ export async function save(
 	let size = 0
 	const hasher = blake3.create()
 
-	await bucket.write(id, readable.pipeThrough(
+	await depot.write(id, readable.pipeThrough(
 		new TransformStream({
 			transform(chunk, controller) {
 				hasher.update(chunk)

@@ -3,7 +3,7 @@ export type Hash = string
 export type Id = string
 
 /** file blob store. */
-export type Bucket = {
+export type Depot = {
 	has(id: Id): Promise<boolean>
 	delete(id: Id): Promise<void>
 	read(id: Id): Promise<Blob>
@@ -23,7 +23,7 @@ export type Analysis = {
 /** metadata for a single file. */
 export type Info = {
 
-	/** bucket id for this file's data. */
+	/** depot id for this file's data. */
 	id: Id
 
 	/** filesize in bytes. */
